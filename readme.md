@@ -27,7 +27,7 @@ Ensure you have the following installed:
 
 ```bash
 pip install flask ollama
-
+```
 
 ---
 
