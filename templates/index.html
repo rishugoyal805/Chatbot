@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -138,11 +139,19 @@
 
         /* Animation */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="chat-container">
         <div class="chat-header">💬 Gemma AI Chat</div>
@@ -165,7 +174,6 @@
 
             if (!userText) return;
 
-            // Add user message
             let userMessage = document.createElement("div");
             userMessage.className = "user-message message";
             userMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712036.png" class="avatar user-avatar" alt="You"> ${userText}`;
@@ -173,7 +181,6 @@
             document.getElementById("userInput").value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Add typing indicator
             let typingIndicator = document.createElement("div");
             typingIndicator.className = "bot-message message typing-indicator";
             typingIndicator.textContent = "Bot is typing...";
@@ -181,6 +188,12 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
+                let botMessage = document.createElement("div");
+                botMessage.className = "bot-message message";
+                botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> `;
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
                 let response = await fetch("/generate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -193,25 +206,25 @@
 
                 let reader = response.body.getReader();
                 let decoder = new TextDecoder();
-                let botMessage = document.createElement("div");
-                botMessage.className = "bot-message message";
-                botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> `;
-                chatBox.appendChild(botMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
-                typingIndicator.remove();
-
-                let result = "";
+                let responseText = "";
 
                 while (true) {
-                    let { done, value } = await reader.read();
+                    let { value, done } = await reader.read();
                     if (done) break;
 
                     let chunk = decoder.decode(value, { stream: true });
-                    let json = JSON.parse(chunk);
-                    result += json.response;
-                    botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> ${result}`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
+                    let lines = chunk.split("\n").filter(line => line.startsWith("data:"));
+
+                    for (let line of lines) {
+                        let jsonData = JSON.parse(line.replace("data: ", ""));
+                        responseText += jsonData.response;
+                        botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> ${responseText}`;
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    }
                 }
+
+                typingIndicator.remove();
+
             } catch (error) {
                 console.error("Fetch error:", error);
                 typingIndicator.remove();
@@ -223,6 +236,7 @@
             }
         }
 
+
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 getResponse();
@@ -230,4 +244,5 @@
         }
     </script>
 </body>
+
 </html>

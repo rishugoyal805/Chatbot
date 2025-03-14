@@ -26,16 +26,19 @@ def generate():
 
         # Streaming response generator
         def generate_response():
-            response = ollama.chat(
-                model="gemma3:1b",
-                messages=[{"role": "user", "content": user_input}],
-                options={"num_ctx": 1024},
-                stream=True  # Stream responses
-            )
-            for chunk in response:
-                yield json.dumps({"response": chunk["message"]["content"]}) + "\n"
+            try:
+                response = ollama.chat(
+                    model="gemma3:1b",
+                    messages=[{"role": "user", "content": user_input}],
+                    options={"num_ctx": 512},  # Reduce context for better performance
+                    stream=True
+                )
+                for chunk in response:
+                    yield f"data: {json.dumps({'response': chunk['message']['content']})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'response': f'❌ Error: {str(e)}'})}\n\n"
 
-        return Response(generate_response(), content_type='application/json')
+        return Response(generate_response(), content_type="text/event-stream")
 
     except Exception as e:
         print(f"Error: {e}")
