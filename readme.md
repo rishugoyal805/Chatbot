@@ -28,9 +28,50 @@ Ensure you have the following installed:
 ```bash
 pip install flask ollama
 ```
-
+### **2️⃣ Start the Ollama Server**
+Ensure Ollama is running:
+```bash
+ollama start
+```
+Then, download the Gemma 3:1B model:
+```bash
+ollama pull gemma3:1b
+```
+### **3️⃣ Run the Flask App**
+```bash
+python app.py
+```
+chatbot will be accessible at:
+```bash
+http://127.0.0.1:5000/
+```
+### **🖥️ Usage**
+- 1. Open your browser and go to http://127.0.0.1:5000/
+- 2. Enter your message in the chatbox
+- 3. Watch as Gemma AI responds in real-time!
 ---
 
+### **🛠️ Project Structure**
+```bash
+/gemma-chatbot
+│── /templates
+│   ├── index.html    # Chatbot UI
+│── /static
+│   ├── favicon.ico   # Optional icon
+│── app.py            # Flask Backend
+│── README.md         # Documentation
+│── requirements.txt  # Python dependencies
+
+```
+### **🤝 Contributing**
+🚀 Pull requests are welcome!
+If you want to improve this chatbot, follow these steps:
+
+Fork the repository
+Create a new branch (git checkout -b feature-xyz)
+Commit your changes (git commit -m "Added new feature")
+Push to your branch (git push origin feature-xyz)
+Open a Pull Request 🚀
 ### ✅ **Now Your GitHub README is Fully Complete!**  
 📌 **Final Steps:**  
 - Replace placeholders (`your-username`, `your-email@example.com`, and add real screenshots).  
