@@ -46,9 +46,9 @@ chatbot will be accessible at:
 http://127.0.0.1:5000/
 ```
 ### **🖥️ Usage**
-- 1. Open your browser and go to http://127.0.0.1:5000/
-- 2. Enter your message in the chatbox
-- 3. Watch as Gemma AI responds in real-time!
+- Open your browser and go to http://127.0.0.1:5000/
+- Enter your message in the chatbox
+- Watch as Gemma AI responds in real-time!
 ---
 
 ### **🛠️ Project Structure**
@@ -67,14 +67,14 @@ http://127.0.0.1:5000/
 🚀 Pull requests are welcome!
 If you want to improve this chatbot, follow these steps:
 
-Fork the repository
-Create a new branch (git checkout -b feature-xyz)
-Commit your changes (git commit -m "Added new feature")
-Push to your branch (git push origin feature-xyz)
-Open a Pull Request 🚀
-### ✅ **Now Your GitHub README is Fully Complete!**  
-📌 **Final Steps:**  
-- Replace placeholders (`your-username`, `your-email@example.com`, and add real screenshots).  
-- Commit & push this file to GitHub! 🚀  
+- Fork the repository
+- Create a new branch (git checkout -b feature-xyz)
+- Commit your changes (git commit -m "Added new feature")
+- Push to your branch (git push origin feature-xyz)
+- Open a Pull Request 🚀
 
-Let me know if you need further improvements! 😊🔥
+### **📞 Contact**
+- 💡 Developed by: [Rishu Goyal]
+- ✉️ **Email**: rishugoyal16800@gmail.com
+- 🌐 **LinkedIn**: [Rishu](https://www.linkedin.com/in/rishu0405)
+- 🧑‍💻 **GitHub**: [@rishugoyal805](https://github.com/rishugoyal805)
