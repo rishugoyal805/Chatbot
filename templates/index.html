@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma AI Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e2e;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 420px;
+            height: 80vh;
+            background: #282a36;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #44475a;
+            color: #f8f8f2;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            align-items: center;
+            max-width: 75%;
+            padding: 10px 14px;
+            margin: 8px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            font-size: 15px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #007bff;
+            color: white;
+            border-radius: 10px 10px 0 10px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #44475a;
+            color: #f8f8f2;
+            border-radius: 10px 10px 10px 0;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-avatar {
+            background: #007bff;
+        }
+
+        .bot-avatar {
+            background: #44475a;
+        }
+
+        .input-area {
+            display: flex;
+            border-top: 1px solid #44475a;
+            padding: 10px;
+            background: #282a36;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            background: #44475a;
+            color: white;
+        }
+
+        .input-area button {
+            margin-left: 10px;
+            padding: 12px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .input-area button:hover {
+            background: #0056b3;
+        }
+
+        .typing-indicator {
+            font-style: italic;
+            color: #aaa;
+            margin-left: 8px;
+            font-size: 14px;
+        }
+
+        /* Scrollbar */
+        .chat-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #44475a;
+            border-radius: 5px;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">💬 Gemma AI Chat</div>
+        <div class="chat-box" id="chatBox">
+            <div class="bot-message message">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot">
+                Hello! How can I assist you today?
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button onclick="getResponse()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        async function getResponse() {
+            let userText = document.getElementById("userInput").value.trim();
+            let chatBox = document.getElementById("chatBox");
+
+            if (!userText) return;
+
+            // Add user message
+            let userMessage = document.createElement("div");
+            userMessage.className = "user-message message";
+            userMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712036.png" class="avatar user-avatar" alt="You"> ${userText}`;
+            chatBox.appendChild(userMessage);
+            document.getElementById("userInput").value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Add typing indicator
+            let typingIndicator = document.createElement("div");
+            typingIndicator.className = "bot-message message typing-indicator";
+            typingIndicator.textContent = "Bot is typing...";
+            chatBox.appendChild(typingIndicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                let response = await fetch("/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: userText })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                let reader = response.body.getReader();
+                let decoder = new TextDecoder();
+                let botMessage = document.createElement("div");
+                botMessage.className = "bot-message message";
+                botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> `;
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                typingIndicator.remove();
+
+                let result = "";
+
+                while (true) {
+                    let { done, value } = await reader.read();
+                    if (done) break;
+
+                    let chunk = decoder.decode(value, { stream: true });
+                    let json = JSON.parse(chunk);
+                    result += json.response;
+                    botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> ${result}`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                typingIndicator.remove();
+                let errorMessage = document.createElement("div");
+                errorMessage.className = "bot-message message";
+                errorMessage.textContent = "❌ Error: Unable to fetch response.";
+                chatBox.appendChild(errorMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                getResponse();
+            }
+        }
+    </script>
+</body>
+</html>
