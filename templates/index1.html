@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma AI Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e2e;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 420px;
+            height: 80vh;
+            background: #282a36;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #44475a;
+            color: #f8f8f2;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            margin: 8px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #007bff;
+            color: white;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #44475a;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-avatar {
+            background: #007bff;
+        }
+
+        .bot-avatar {
+            background: #44475a;
+        }
+
+        .input-area {
+            display: flex;
+            border-top: 1px solid #44475a;
+            padding: 10px;
+            background: #282a36;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background: #44475a;
+            color: white;
+        }
+
+        .input-area button,
+        .voice-button {
+            margin-left: 10px;
+            padding: 12px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .voice-button {
+            background: #f44336;
+        }
+
+        .input-area button:hover {
+            background: #0056b3;
+        }
+
+        .voice-button:hover {
+            background: #d32f2f;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #44475a;
+            color: #f8f8f2;
+            border-radius: 10px 10px 10px 0;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            💬 Gemma AI Chat
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
+        <div class="chat-box" id="chatBox">
+            <div class="bot-message message">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot">
+                Hello! How can I assist you today?
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button onclick="getResponse()">Send</button>
+            <button class="voice-button" onclick="startVoiceRecognition()">🎤</button>
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false; // Flag to track if AI is processing
+
+        async function getResponse() {
+            if (isProcessing) return; // Prevent new input if AI is still responding
+            isProcessing = true;
+
+            let userInput = document.getElementById("userInput");
+            let chatBox = document.getElementById("chatBox");
+            let sendButton = document.querySelector(".input-area button");
+            let micButton = document.querySelector(".voice-button");
+
+            let userText = userInput.value.trim();
+            if (!userText) {
+                isProcessing = false;
+                return;
+            }
+
+            // Disable input & buttons while processing
+            sendButton.disabled = true;
+
+            // Append user message
+            let userMessage = document.createElement("div");
+            userMessage.className = "user-message message";
+            userMessage.textContent = userText;
+            chatBox.appendChild(userMessage);
+            userInput.value = ""; // Clear input field
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Show typing indicator
+            let typingIndicator = document.createElement("div");
+            typingIndicator.className = "bot-message message";
+            typingIndicator.textContent = "Bot is typing...";
+            chatBox.appendChild(typingIndicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                let response = await fetch("/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: userText })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                let data = await response.json();
+                typingIndicator.remove();
+                let botMessage = document.createElement("div");
+                botMessage.className = "bot-message message";
+                botMessage.innerHTML = data.response.replace(/\n/g, "<br>");
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (error) {
+                console.error("Error:", error);
+                typingIndicator.remove();
+                let errorMessage = document.createElement("div");
+                errorMessage.className = "bot-message message";
+                errorMessage.textContent = "❌ Error: Unable to fetch response.";
+                chatBox.appendChild(errorMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } finally {
+                // Re-enable input & buttons after processing
+                sendButton.disabled = false;
+                isProcessing = false;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                getResponse();
+            }
+        }
+
+        function startVoiceRecognition() {
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.interimResults = true; // Enable real-time text updates
+
+            recognition.start();
+
+            let userInput = document.getElementById("userInput");
+            userInput.placeholder = "Listening... 🎤"; // Show listening status
+
+            recognition.onresult = function (event) {
+                let transcript = "";
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript + " ";
+                }
+                userInput.value = transcript.trim(); // Update input field in real-time
+            };
+
+            recognition.onspeechend = function () {
+                recognition.stop();
+                userInput.placeholder = "Type a message..."; // Reset placeholder
+            };
+
+            recognition.onerror = function (event) {
+                console.error("Speech recognition error:", event.error);
+                userInput.placeholder = "Type a message..."; // Reset placeholder on error
+            };
+        }
+
+        function toggleTheme() {
+            let body = document.body;
+            let themeButton = document.querySelector(".theme-toggle");
+
+            if (body.style.backgroundColor === "white") {
+                body.style.backgroundColor = "#1e1e2e";
+                body.style.color = "white";
+                themeButton.textContent = "🌙";
+            } else {
+                body.style.backgroundColor = "white";
+                body.style.color = "black";
+                themeButton.textContent = "☀️";
+            }
+        }
+    </script>
+</body>
+
+</html>
