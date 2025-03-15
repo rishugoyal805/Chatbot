@@ -106,7 +106,8 @@
             color: white;
         }
 
-        .input-area button {
+        .input-area button,
+        .voice-button {
             margin-left: 10px;
             padding: 12px;
             border: none;
@@ -116,8 +117,16 @@
             border-radius: 5px;
         }
 
+        .voice-button {
+            background: #f44336;
+        }
+
         .input-area button:hover {
             background: #0056b3;
+        }
+
+        .voice-button:hover {
+            background: #d32f2f;
         }
 
         .typing-indicator {
@@ -164,6 +173,7 @@
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
             <button onclick="getResponse()">Send</button>
+            <button class="voice-button" onclick="startVoiceRecognition()">🎤</button>
         </div>
     </div>
 
@@ -218,8 +228,13 @@
                     for (let line of lines) {
                         let jsonData = JSON.parse(line.replace("data: ", ""));
                         responseText += jsonData.response;
+
                         botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> ${responseText}`;
                         chatBox.scrollTop = chatBox.scrollHeight;
+
+                        if (responseText.length === 1) {
+                            speakText(responseText); // ✅ FIXED: Now correctly calls TTS
+                        }
                     }
                 }
 
@@ -236,13 +251,55 @@
             }
         }
 
-
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 getResponse();
             }
         }
+
+        function startVoiceRecognition() {
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.interimResults = true; // ✅ Allows real-time text updates
+            recognition.continuous = false; // ✅ Stops after the user finishes speaking
+
+            let userInput = document.getElementById("userInput");
+            userInput.placeholder = "Listening... 🎤"; // ✅ Show listening status
+
+            recognition.start();
+
+            recognition.onresult = function (event) {
+                let transcript = "";
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript + " ";
+                }
+                userInput.value = transcript.trim(); // ✅ Real-time input update
+            };
+
+            recognition.onspeechend = function () {
+                recognition.stop();
+                userInput.placeholder = "Type a message..."; // ✅ Reset placeholder
+            };
+
+            recognition.onerror = function (event) {
+                console.error("Speech recognition error:", event.error);
+                userInput.placeholder = "Type a message..."; // ✅ Reset placeholder on error
+            };
+        }
+
+        
+        function speakText(text) {
+            let speech = new SpeechSynthesisUtterance();
+            speech.text = text;
+            speech.lang = "en-US"; // ✅ Set language
+            speech.volume = 1; // ✅ Volume (0.1 to 1)
+            speech.rate = 1; // ✅ Speed (0.1 to 2)
+            speech.pitch = 1; // ✅ Pitch (0.1 to 2)
+
+            window.speechSynthesis.speak(speech);
+        }
     </script>
+
 </body>
 
 </html>
