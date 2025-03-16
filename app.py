@@ -28,7 +28,7 @@ def generate():
         def generate_response():
             try:
                 response = ollama.chat(
-                    model="gemma3:1b",
+                    model="mistral",
                     messages=[{"role": "user", "content": user_input}],
                     options={"num_ctx": 512},  # Reduce context for better performance
                     stream=True
