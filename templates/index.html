@@ -9,7 +9,7 @@
         body {
             font-family: 'Arial', sans-serif;
             background-color: #1e1e2e;
-            color: #ffffff; 
+            color: #ffffff;
             margin: 0;
             padding: 0;
             display: flex;
@@ -17,11 +17,11 @@
             align-items: center;
             height: 100vh;
         }
-        
+
 
         .chat-container {
-            width: 420px;
-            height: 80vh;
+            width: 95vw;
+            height: 95vh;
             background: #282a36;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -185,6 +185,7 @@
 
             if (!userText) return;
 
+            // Add user message to the chat
             let userMessage = document.createElement("div");
             userMessage.className = "user-message message";
             userMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712036.png" class="avatar user-avatar" alt="You"> ${userText}`;
@@ -192,6 +193,7 @@
             document.getElementById("userInput").value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
+            // Add typing indicator
             let typingIndicator = document.createElement("div");
             typingIndicator.className = "bot-message message typing-indicator";
             typingIndicator.textContent = "Bot is typing...";
@@ -199,12 +201,6 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                let botMessage = document.createElement("div");
-                botMessage.className = "bot-message message";
-                botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> `;
-                chatBox.appendChild(botMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
-
                 let response = await fetch("/generate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -215,40 +211,34 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
-                let reader = response.body.getReader();
-                let decoder = new TextDecoder();
-                let responseText = "";
+                let data = await response.json();
 
-                while (true) {
-                    let { value, done } = await reader.read();
-                    if (done) break;
-
-                    let chunk = decoder.decode(value, { stream: true });
-                    let lines = chunk.split("\n").filter(line => line.startsWith("data:"));
-
-                    for (let line of lines) {
-                        let jsonData = JSON.parse(line.replace("data: ", ""));
-                        responseText += jsonData.response;
-
-                        botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> ${responseText}`;
-                        chatBox.scrollTop = chatBox.scrollHeight;
-
-                        if (responseText.length === 1) {
-                            speakText(responseText); // ✅ FIXED: Now correctly calls TTS
-                        }
-                    }
+                // Check if API returned an error
+                if (data.response.startsWith("❌ API Error")) {
+                    alert("Chatbot is busy or not responding. Try again later.");
+                    typingIndicator.remove(); // Remove typing indicator
+                    return;
                 }
 
-                typingIndicator.remove();
+                // Add bot message to the chat
+                let botMessage = document.createElement("div");
+                botMessage.className = "bot-message message";
+                botMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="avatar bot-avatar" alt="Bot"> ${data.response}`;
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
 
             } catch (error) {
                 console.error("Fetch error:", error);
-                typingIndicator.remove();
+
+                // Show error message in chat
                 let errorMessage = document.createElement("div");
                 errorMessage.className = "bot-message message";
-                errorMessage.textContent = "❌ Error: Unable to fetch response.";
+                errorMessage.textContent = "❌ Error: Unable to fetch response. Please try again.";
                 chatBox.appendChild(errorMessage);
                 chatBox.scrollTop = chatBox.scrollHeight;
+
+            } finally {
+                typingIndicator.remove(); // Ensure typing indicator is removed
             }
         }
 
