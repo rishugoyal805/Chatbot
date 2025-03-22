@@ -2,7 +2,7 @@
 
 A sleek and interactive chatbot powered by **Ollama's Gemma 3:1B model**, built with **Flask** and **JavaScript**, designed to provide real-time AI responses with a modern chat UI.
 
-![Chatbot Screenshot](https://via.placeholder.com/800x400?text=Gemma+3:1B+Chatbot) <!-- Replace with actual screenshot -->
+![Chatbot Screenshot](https://via.placeholder.com/800x400?text=Gemma+3:1B+Chatbot) <!-- Replace with actual screenshot --> 
  
 ---
 
