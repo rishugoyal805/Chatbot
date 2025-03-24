@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, send_from_directory, Response
 import requests
 from dotenv import load_dotenv
 import os
-
+   
 app = Flask(__name__)
 load_dotenv()  # Load .env file
 
