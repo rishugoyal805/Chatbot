@@ -4,7 +4,7 @@ A sleek and interactive chatbot powered by **Ollama's Gemma 3:1B model**, built 
 
 ![Chatbot Screenshot](https://via.placeholder.com/800x400?text=Gemma+3:1B+Chatbot) <!-- Replace with actual screenshot --> 
  
----
+---  
 
 ## 📌 Features
 ✅ **Real-time AI responses** using Ollama  
